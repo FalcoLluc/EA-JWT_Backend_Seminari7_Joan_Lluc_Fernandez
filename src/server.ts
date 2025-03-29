@@ -18,7 +18,6 @@ const app = express();
 
 const LOCAL_PORT = process.env.SERVER_PORT || 9000;
 
-// Configuración de Swagger
 const swaggerOptions = {
     definition: {
         openapi: '3.0.0',
@@ -29,29 +28,15 @@ const swaggerOptions = {
         },
         tags: [
             {
-              name: 'Users',
-              description: 'Rutas relacionadas con la gestión de usuarios',
-            },
-            {
-              name: 'Forum',
-              description: 'Rutas relacionadas con el forum',
-            },
-            {
-                name: 'Subjects',
-                description: 'Rutas relacionadas con las asignaturas',
-            },
-            {
                 name: 'Auth',
-                description: 'Rutas relacionadas con la autenticación',
-            },
-            {
-              name: 'Main',
-              description: 'Rutas principales de la API',
+                description: 'Authentication endpoints'
             }
-          ],
+            // Add other tags as needed
+        ],
         servers: [
             {
-                url: `http://localhost:${LOCAL_PORT}`
+                url: `http://localhost:${LOCAL_PORT}`, // Base URL without /api
+                description: 'Local server'
             }
         ],
         components: {
@@ -69,7 +54,10 @@ const swaggerOptions = {
             },
         ],
     },
-    apis: ['./modules/users/*.js', './modules/forum/*.js', './modules/subjects/*.js', './modules/auth/*.js'] // Asegúrate de que esta ruta apunta a tus rutas
+    apis: [
+        './src/modules/**/*.js',    // Correct path to your route files
+        './src/modules/**/*.ts'     // If using TypeScript
+    ]
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
@@ -80,6 +68,7 @@ app.use(express.json());
 app.use(loggingHandler);
 app.use(corsHandler);
 //rutas
+
 app.use('/api', userRoutes);
 app.use('/api', forumRoutes);
 app.use('/api', subjectRoutes);

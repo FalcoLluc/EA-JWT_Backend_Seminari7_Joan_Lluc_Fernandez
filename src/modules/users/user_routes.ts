@@ -35,7 +35,7 @@ router.get('/main', saveMethodHandler);
 
 /**
  * @openapi
- * /api/users:
+ * /users:
  *   post:
  *     summary: Crea un nuevo usuario
  *     description: Añade los detalles de un nuevo usuario.
@@ -178,5 +178,6 @@ router.put('/users/:id', updateUserHandler);
  *         description: Usuario no encontrado
  */
 router.delete('/users/:id', deleteUserHandler);
+
 
 export default router;

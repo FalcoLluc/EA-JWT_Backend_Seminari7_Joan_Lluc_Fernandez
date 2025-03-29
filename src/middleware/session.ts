@@ -1,27 +1,26 @@
-import { Request, Response, NextFunction } from "express";
-import { verifyToken } from "../utils/jwt.handle.js";
-import { JwtPayload } from "jsonwebtoken";
+import { Request, Response, NextFunction } from 'express';
+import { verifyAccessToken } from '../utils/jwt.handle.js';
 
-interface RequestExt extends Request {
-    user?: string | JwtPayload;
-}
+const checkJwt = (req: Request, res: Response, next: NextFunction) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    
+    if (!token) {
+        return res.status(401).json({ error: "No token provided" });
+    }
 
-const checkJwt = (req: RequestExt, res: Response, next: NextFunction) => {
     try {
-        const jwtByUser = req.headers.authorization || null;
-        const jwt = jwtByUser?.split(' ').pop(); // ['Bearer', '11111'] -> ['11111']
-        console.log(jwt);
-        const isUser = verifyToken(`${jwt}`);
-        
-        if (!isUser) {
-            return res.status(401).send("NO_TIENES_UN_JWT_VALIDO"); // return para evitar llamar a next()
+        const decoded = verifyAccessToken(token);
+        req.user = decoded; // Attach user to request
+        next();
+    } catch (error: any) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ 
+                error: "Token expired",
+                code: "TOKEN_EXPIRED"
+            });
         }
-        
-        req.user = isUser;
-        next(); // Solo si el token es válido, pasa al siguiente middleware
-    } catch (e) {
-        console.error("Error en checkJwt:", e);
-        return res.status(401).send("SESSION_NO_VALID"); // Asegúrate de detener con return
+        return res.status(403).json({ error: "Invalid token" });
     }
 };
 

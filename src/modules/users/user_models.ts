@@ -13,14 +13,24 @@ const userSchema = new mongoose.Schema(
         },
         age: {
             type: Number,
-            default: '0'
+            default: 0  // Changed from string '0' to number 0
         },
         email: {
             type: String,
             required: true,
             unique: true
         },
-        googleId: { type: String },
+        googleId: { 
+            type: String 
+        },
+        isAdmin: {
+            type: Boolean,
+            default: false
+        },
+        lastLogin: {
+            type: Date,
+            default: null
+        }
     },
     {
         versionKey: false,
@@ -28,13 +38,14 @@ const userSchema = new mongoose.Schema(
     }
 );
 
-export interface IUser extends Auth{
-    name : string;
-    age : number;
+export interface IUser extends Auth {
+    name: string;
+    age: number;
     password: string;
     email: string;
     googleId: string;
-    
+    isAdmin: boolean;
+    lastLogin?: Date;
 }
 
 const User = mongoose.model('User', userSchema);
