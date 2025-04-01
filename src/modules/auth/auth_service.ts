@@ -25,8 +25,8 @@ const loginUser = async ({ email, password }: Auth) => {
     const isCorrect = await verified(password, passwordHash);
     if(!isCorrect) return "INCORRECT_PASSWORD";
 
-    const accessToken = generateAccessToken(checkIs.email);
-    const refreshToken = generateRefreshToken(checkIs.email);
+    const accessToken = generateAccessToken(checkIs as IUser);
+    const refreshToken = generateRefreshToken(checkIs as IUser);
     
     const data = {
         accessToken,
@@ -91,7 +91,7 @@ const googleAuth = async (code: string) => {
         }
 
         // Genera el token JWT
-        const token = generateAccessToken(user.email);
+        const token = generateAccessToken(user as IUser);
 
         console.log(token);
         return { token, user };

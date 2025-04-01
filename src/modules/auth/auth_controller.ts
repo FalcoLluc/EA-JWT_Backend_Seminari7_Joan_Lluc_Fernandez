@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { registerNewUser, loginUser, googleAuth } from "../auth/auth_service.js";
 import { verifyRefreshToken, generateAccessToken } from "../../utils/jwt.handle.js";
+import User, { IUser } from "../users/user_models.js";
 
 const registerCtrl = async ({body}: Request, res: Response) => {
     try{
@@ -83,24 +84,52 @@ const googleAuthCallback = async (req: Request, res: Response) => {
     }
 };
 
-// Add this to your auth_controller.ts
 const refreshTokens = async (req: Request, res: Response) => {
     const { refreshToken } = req.body;
     
     if (!refreshToken) {
-        return res.status(401).json({ error: "Refresh token is required" });
+        return res.status(401).json({ 
+            success: false,
+            error: "Refresh token is required" 
+        });
     }
 
     try {
+        // Verify refresh token and get user email
         const decoded = verifyRefreshToken(refreshToken) as { id: string };
-        const newAccessToken = generateAccessToken(decoded.id);
+        
+        // Fetch complete user data from database
+        const user = await User.findOne({ email: decoded.id });
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: "User not found"
+            });
+        }
+
+        // Update last login timestamp
+        user.lastLogin = new Date();
+        await user.save();
+
+        // Generate new access token with complete user data
+        const newAccessToken = generateAccessToken(user as IUser);
         
         res.json({
-            accessToken: newAccessToken
+            success: true,
+            accessToken: newAccessToken,
+            user: {
+                email: user.email,
+                name: user.name,
+                isAdmin: user.isAdmin,
+                lastLogin: user.lastLogin
+            }
         });
     } catch (error) {
-        return res.status(403).json({ error: "Invalid refresh token" });
+        return res.status(403).json({ 
+            success: false,
+            error: "Invalid refresh token" 
+        });
     }
 };
-
 export { registerCtrl, loginCtrl,googleAuthCtrl, googleAuthCallback, refreshTokens };
